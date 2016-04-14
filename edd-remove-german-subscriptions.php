@@ -7,7 +7,7 @@
  */
 
 class EDD_Remove_German_Subscriptions {
-	
+
 	public function __construct() {
 		$this->init();
 	}
@@ -22,8 +22,13 @@ class EDD_Remove_German_Subscriptions {
 
 	public function remove_subscription_flags( $cart_item ) {
 
-		if( $this->is_in_germany() && ! empty( $cart_item['options']['recurring'] ) ) {
-			unset( $cart_item['options']['recurring'] );
+		if( ! empty( $cart_item['options']['recurring'] ) ) {
+
+			if( $this->is_in_germany() ) {
+
+				unset( $cart_item['options']['recurring'] );
+
+			}
 		}
 
 		return $cart_item;
@@ -43,11 +48,10 @@ class EDD_Remove_German_Subscriptions {
 
 				// decode response
 				$country_code = strtoupper( trim( $response ) );
-
 				if( 'DE' === $country_code ) {
 					$ret = true;
 				}
-			
+
 			} catch( Exception $e ) {
 
 			}
