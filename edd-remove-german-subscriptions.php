@@ -6,6 +6,13 @@
  * Version: 1.0
  */
 
+if ( ! defined( 'EDD_NO_DE_PLUGIN_DIR' ) ) {
+	define( 'EDD_NO_DE_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+}
+
+require EDD_NO_DE_PLUGIN_DIR . 'vendor/autoload.php';
+use GeoIp2\Database\Reader;
+
 class EDD_Remove_German_Subscriptions {
 
 	public function __construct() {
@@ -18,6 +25,7 @@ class EDD_Remove_German_Subscriptions {
 
 	public function filters() {
 		add_filter( 'edd_add_to_cart_item', array( $this, 'remove_subscription_flags' ), 99999 );
+		add_filter( 'edd_recurring_show_terms_on_cart_item', array( $this, 'remove_cart_terms' ), 99999, 2 );
 	}
 
 	public function remove_subscription_flags( $cart_item ) {
@@ -34,28 +42,24 @@ class EDD_Remove_German_Subscriptions {
 		return $cart_item;
 	}
 
+	public function remove_cart_terms( $show_terms, $item ) {
+
+		if( $this->is_in_germany() ) {
+			$show_terms = false;
+		}
+
+		return $show_terms;
+	}
+
 	public function is_in_germany() {
 
 		$ret = false;
 
-		$api = wp_remote_get( 'http://ipinfo.io/' . edd_get_ip() . '/country' );
+		$ip_db_reader = new Reader( EDD_NO_DE_PLUGIN_DIR . 'vendor/GeoLite2-Country.mmdb' );
+		$country_data = $ip_db_reader->country( edd_get_ip() );
 
-		if( ! is_wp_error( $api ) ) {
-
-			$response = wp_remote_retrieve_body( $api );
-
-			try {
-
-				// decode response
-				$country_code = strtoupper( trim( $response ) );
-				if( 'DE' === $country_code ) {
-					$ret = true;
-				}
-
-			} catch( Exception $e ) {
-
-			}
-
+		if ( 'DE' === strtoupper( $country_data->country->isoCode ) ) {
+			$ret = true;
 		}
 
 		return $ret;
