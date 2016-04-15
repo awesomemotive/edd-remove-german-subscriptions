@@ -55,11 +55,17 @@ class EDD_Remove_German_Subscriptions {
 
 		$ret = false;
 
-		$ip_db_reader = new Reader( EDD_NO_DE_PLUGIN_DIR . 'vendor/GeoLite2-Country.mmdb' );
-		$country_data = $ip_db_reader->country( edd_get_ip() );
+		try {
 
-		if ( 'DE' === strtoupper( $country_data->country->isoCode ) ) {
-			$ret = true;
+			$ip_db_reader = new Reader( EDD_NO_DE_PLUGIN_DIR . 'vendor/GeoLite2-Country.mmdb' );
+			$country_data = $ip_db_reader->country( edd_get_ip() );
+
+			if ( 'DE' === strtoupper( $country_data->country->isoCode ) ) {
+				$ret = true;
+			}
+
+		} catch( Exception $e ) {
+
 		}
 
 		return $ret;
